@@ -156,6 +156,7 @@ int pres_waitn_time = 5;
 int pres_notifier_poll_rate = 10;
 int pres_notifier_processes = 1;
 int pres_startup_mode = 1;
+int pres_force_delete = 0;
 str pres_xavp_cfg = {0};
 int pres_retrieve_order = 0;
 str pres_retrieve_order_by = str_init("priority");
@@ -202,6 +203,7 @@ static param_export_t params[]={
 	{ "notifier_poll_rate",     INT_PARAM, &pres_notifier_poll_rate },
 	{ "notifier_processes",     INT_PARAM, &pres_notifier_processes },
 	{ "startup_mode",           INT_PARAM, &pres_startup_mode },
+	{ "force_delete",           INT_PARAM, &pres_force_delete },
 	{ "to_tag_pref",            PARAM_STRING, &to_tag_pref },
 	{ "expires_offset",         INT_PARAM, &expires_offset },
 	{ "max_expires",            INT_PARAM, &max_expires },
@@ -435,6 +437,8 @@ static int mod_init(void)
 		register_basic_timers(pres_notifier_processes);
 	}
 
+	if (pres_force_delete > 0)
+		pres_force_delete = 1;
 
 	if (db_table_lock_type != 1)
 		db_table_lock = DB_LOCKING_NONE;

@@ -154,7 +154,15 @@ void msg_presentity_clean(unsigned int ticks,void *param)
 			LM_DBG("found expired publish for [user]=%.*s  [domanin]=%.*s\n",
 				pres.user.len,pres.user.s, pres.domain.len, pres.domain.s);
 
-			if (pres_notifier_processes > 0)
+			if (pres_force_delete == 1)
+			{
+				if (delete_presentity(&pres) < 0)
+				{
+					LM_ERR("Deleting presentity\n");
+					goto error;
+				}
+			}
+			else if (pres_notifier_processes > 0)
 			{
 				if ((num_watchers = publ_notify_notifier(uri, pres.event)) < 0)
 				{
