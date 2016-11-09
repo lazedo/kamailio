@@ -155,6 +155,8 @@ int publ_cache_enabled = 1;
 int pres_waitn_time = 5;
 int pres_notifier_poll_rate = 10;
 int pres_notifier_processes = 1;
+int startup_mode = 1; // enable by default
+int pres_fix_startup = 0;
 str pres_xavp_cfg = {0};
 int pres_retrieve_order = 0;
 str pres_retrieve_order_by = str_init("priority");
@@ -200,6 +202,7 @@ static param_export_t params[]={
 	{ "waitn_time",             INT_PARAM, &pres_waitn_time },
 	{ "notifier_poll_rate",     INT_PARAM, &pres_notifier_poll_rate },
 	{ "notifier_processes",     INT_PARAM, &pres_notifier_processes },
+	{ "startup_mode",           INT_PARAM, &startup_mode },
 	{ "to_tag_pref",            PARAM_STRING, &to_tag_pref },
 	{ "expires_offset",         INT_PARAM, &expires_offset },
 	{ "max_expires",            INT_PARAM, &max_expires },
@@ -431,6 +434,10 @@ static int mod_init(void)
 		}
 
 		register_basic_timers(pres_notifier_processes);
+	}
+
+	if (startup_mode > 0) {
+		pres_fix_startup = 1;  // startup_mode fixes presence on startup (commit: 1dceaa24ded727aba5870f28fb63e26ed98464f3)
 	}
 
 	if (db_table_lock_type != 1)
