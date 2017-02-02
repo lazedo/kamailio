@@ -190,36 +190,39 @@ static void rpc_query(rpc_t *rpc, void *ctx) {
         }
 
 
-        if(_r->rows && _r->n == 0) {
-                rpc->rpl_printf(ctx, "statement returned 0 rows");
-        } else if(_r->rows) {
-                stream = open_memstream (&buf, &len);
-                if (stream == NULL) {
-                        rpc->rpl_printf(ctx, "error opening stream");
-                        goto end;
-                }
+        if(_r) {
                 tab = (dbt_table_p)_r->ptr;
-                dbt_print_table_header(tab, stream);
-                fflush (stream);
-                buf[len] = '\0';
-                rpc->rpl_printf(ctx, "%s", buf);
-                rowp = tab->rows;
-                for(n=0; n < _r->n; n++) {
-                        fseeko (stream, 0, SEEK_SET);
-                        dbt_print_table_row_ex(tab, rowp, stream, 0);
+                if(_r->n == 0) {
+                        rpc->rpl_printf(ctx, "statement returned 0 rows");
+                } else {
+                        stream = open_memstream (&buf, &len);
+                        if (stream == NULL) {
+                                rpc->rpl_printf(ctx, "error opening stream");
+                                goto end;
+                        }
+                        dbt_print_table_header(tab, stream);
                         fflush (stream);
                         buf[len] = '\0';
                         rpc->rpl_printf(ctx, "%s", buf);
-			rowp = rowp->next;
+                        rowp = tab->rows;
+                        for(n=0; n < _r->n; n++) {
+                                fseeko (stream, 0, SEEK_SET);
+                                dbt_print_table_row_ex(tab, rowp, stream, 0);
+                                fflush (stream);
+                                buf[len] = '\0';
+                                rpc->rpl_printf(ctx, "%s", buf);
+                                rowp = rowp->next;
+                        }
+                        fclose (stream);
+                        free (buf);
+                        rpc->rpl_printf(ctx, "\ntotal rows %d / %d", _r->n, tab->nrrows);
                 }
-                fclose (stream);
-            free (buf);
-                rpc->rpl_printf(ctx, "\ntotal rows %d / %d", _r->n, tab->nrrows);
         } else {
                 rpc->rpl_printf(ctx, "%d affected rows", ((dbt_con_p)con->tail)->affected);
         }
 
-        dbt_free_result(con, _r);
+        if(_r)
+                dbt_free_result(con, _r);
 
 end:
         dbt_close(con);
