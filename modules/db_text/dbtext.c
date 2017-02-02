@@ -210,6 +210,7 @@ static void rpc_query(rpc_t *rpc, void *ctx) {
                         fflush (stream);
                         buf[len] = '\0';
                         rpc->rpl_printf(ctx, "%s", buf);
+			rowp = rowp->next;
                 }
                 fclose (stream);
             free (buf);
