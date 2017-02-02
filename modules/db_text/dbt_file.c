@@ -615,7 +615,7 @@ int dbt_print_table_row_ex(dbt_table_p _dtp, dbt_row_p rowp, FILE *fout, int new
 
 int dbt_print_table_row(dbt_table_p _dtp, dbt_row_p rowp, FILE *fout)
 {
-        int dbt_print_table_row_ex(_dtp, rowp, fout, 1);
+        return dbt_print_table_row_ex(_dtp, rowp, fout, 1);
 }
 
 int dbt_print_table_rows(dbt_table_p _dtp, FILE *fout)
