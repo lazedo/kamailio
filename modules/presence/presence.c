@@ -136,7 +136,6 @@ static int fixup_refresh_watchers(void** param, int param_no);
 static int fixup_update_watchers(void** param, int param_no);
 static int presence_init_rpc(void);
 
-int pres_has_subscribers(struct sip_msg* msg, str presentity_uri, str watched_event);
 static int w_pres_has_subscribers(struct sip_msg* _msg, char* _sp1, char* _sp2);
 static int fixup_has_subscribers(void** param, int param_no);
 
@@ -1922,6 +1921,7 @@ static int fixup_has_subscribers(void** param, int param_no)
 static int w_pres_has_subscribers(struct sip_msg* msg, char* _pres_uri, char* _event)
 {
         str presentity_uri, watched_event;
+        pres_ev_t* ev;
 
         if(fixup_get_svalue(msg, (gparam_p)_pres_uri, &presentity_uri)!=0)
         {
@@ -1935,18 +1935,11 @@ static int w_pres_has_subscribers(struct sip_msg* msg, char* _pres_uri, char* _e
                 return -1;
         }
 
-        return pres_has_subscribers(msg, presentity_uri, watched_event);
-}
-
-int pres_has_subscribers(struct sip_msg* msg, str presentity_uri, str watched_event)
-{
-        pres_ev_t* ev;
-
-        ev = contains_event(&watched_event, NULL);
+	ev = contains_event(&watched_event, NULL);
         if (ev == NULL) {
                 LM_ERR("event is not registered\n");
                 return -1;
         }
 
-        return get_subscribers_count(msg, presentity_uri, watched_event) > 0 ? 1 : 0;
+        return get_subscribers_count(msg, presentity_uri, watched_event) > 0 ? 1 : -1;
 }
