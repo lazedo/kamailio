@@ -2776,8 +2776,7 @@ int get_db_subs_auth(subs_t* subs, int* found)
 		return -1;
 	}
 
-	if(pa_dbf.query(pa_db, db_keys, 0, db_vals, result_cols,
-				n_query_cols, 2, 0, &result )< 0)
+	if(pa_dbf.query(pa_db, db_keys, 0, db_vals, result_cols, n_query_cols, 2, 0, &result )< 0)
 	{
 		LM_ERR("while querying watchers table\n");
 		if(result)
@@ -2921,11 +2920,10 @@ int get_subscribers_count_from_mem(struct sip_msg* msg, str pres_uri, str event)
 
 	hash_code = core_case_hash(&pres_uri, &event, shtable_size);
 	lock_get(&subs_htable[hash_code].lock);
-	s= htable[hash_code].entries->next;
+	s= subs_htable[hash_code].entries->next;
 	while(s)
 	{
-		if(s->pres_uri.len==pres_uri.len &&
-				strncmp(s->pres_uri.s, pres_uri.s, pres_uri.len)==0)
+		if(s->pres_uri.len==pres_uri.len && strncmp(s->pres_uri.s, pres_uri.s, pres_uri.len)==0)
 			found++;
 		s= s->next;
 	}
@@ -2935,12 +2933,10 @@ int get_subscribers_count_from_mem(struct sip_msg* msg, str pres_uri, str event)
 
 int get_subscribers_count_from_db(struct sip_msg* msg, str pres_uri, str event)
 {
-	db_key_t query_cols[2];
+ 	db_key_t query_cols[2];
 	db_val_t query_vals[2];
 	db_key_t result_cols[1];
 	db1_res_t *result= NULL;
-	db_row_t *row ;
-	db_val_t *row_vals ;
 	int n_query_cols = 0;
 	int n_result_cols = 0;
 	int found = 0;
