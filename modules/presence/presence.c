@@ -1936,10 +1936,10 @@ static int w_pres_has_subscribers(struct sip_msg* msg, char* _pres_uri, char* _e
         }
 
 	ev = contains_event(&watched_event, NULL);
-        if (ev == NULL) {
-                LM_ERR("event is not registered\n");
-                return -1;
-        }
+	if (ev == NULL) {
+		LM_ERR("event is not registered\n");
+		return -1;
+	}
 
-        return get_subscribers_count(msg, presentity_uri, watched_event) > 0 ? 1 : -1;
+	return get_subscribers_count(msg, presentity_uri, watched_event) > 0 ? 1 : -1;
 }
