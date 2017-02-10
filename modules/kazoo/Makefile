@@ -20,16 +20,16 @@ endif
 ifeq ($(BUILDER),)
 	DEFS+=-I$(LOCALBASE)/include -I$(SYSBASE)/include \
 		-I$(SYSBASE)/include/$(JLIB)
-	LIBS=-L$(LOCALBASE)/lib -I$(SYSBASE)/lib -lrabbitmq -l$(JLIB) -luuid -levent
+	LIBS=-L$(LOCALBASE)/lib -I$(SYSBASE)/lib -luuid -static -l$(JLIB) -levent -lrabbitmq
 else
 	DEFS += $(shell $(BUILDER) --cflags $(JLIB))
-	LIBS += $(shell $(BUILDER) --libs $(JLIB))
+	LIBS += $(shell $(BUILDER) --static --libs $(JLIB))
 	DEFS += $(shell $(BUILDER) --cflags uuid)
 	LIBS += $(shell $(BUILDER) --libs uuid)
 	DEFS += $(shell $(BUILDER) --cflags librabbitmq)
-	LIBS += $(shell $(BUILDER) --libs librabbitmq)
+	LIBS += $(shell $(BUILDER) --static --libs librabbitmq)
 	DEFS += $(shell $(BUILDER) --cflags libevent)
-	LIBS += $(shell $(BUILDER) --libs libevent)
+	LIBS += $(shell $(BUILDER) --static --libs libevent)
 endif
 
 DEFS += -DKAMAILIO_MOD_INTERFACE
