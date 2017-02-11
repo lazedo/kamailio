@@ -32,7 +32,7 @@ else
 	DEFS += $(shell $(BUILDER) --cflags libevent)
 	LIBS += $(shell $(BUILDER) --libs libevent)
 endif
-
+LIBS += -dynamic-linker 
 DEFS += -DKAMAILIO_MOD_INTERFACE
 
 
