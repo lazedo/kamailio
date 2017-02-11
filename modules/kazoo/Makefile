@@ -5,7 +5,6 @@ include ../../Makefile.defs
 auto_gen=
 NAME=kazoo.so
 JLIB=json
-LIBS += -static 
 
 BUILDER = $(shell which pkg-config)
 ifeq ($(BUILDER),)
@@ -24,15 +23,15 @@ ifeq ($(BUILDER),)
 	LIBS=-L$(LOCALBASE)/lib -I$(SYSBASE)/lib -lrabbitmq -l$(JLIB) -luuid -levent
 else
 	DEFS += $(shell $(BUILDER) --cflags $(JLIB))
-	LIBS += $(shell $(BUILDER) --libs $(JLIB))
+#$	LIBS += $(shell $(BUILDER) --libs $(JLIB))
 	DEFS += $(shell $(BUILDER) --cflags uuid)
 	LIBS += $(shell $(BUILDER) --libs uuid)
 	DEFS += $(shell $(BUILDER) --cflags librabbitmq)
-	LIBS += $(shell $(BUILDER) --libs librabbitmq)
+#	LIBS += $(shell $(BUILDER) --libs librabbitmq)
 	DEFS += $(shell $(BUILDER) --cflags libevent)
-	LIBS += $(shell $(BUILDER) --libs libevent)
+#	LIBS += $(shell $(BUILDER) --libs libevent)
 endif
-LIBS += -dynamic-linker 
+LIBS += -l:libjson-c.a -l:librabbitmq.a -l:libevent.a 
 DEFS += -DKAMAILIO_MOD_INTERFACE
 
 
