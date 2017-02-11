@@ -6,7 +6,7 @@ auto_gen=
 NAME=kazoo.so
 JLIB=json-c
 
-DEFS+=-I$(LOCALBASE)/include -I$(SYSBASE)/include -I$(SYSBASE)/include/$(JLIB)
+DEFS+=-I$(LOCALBASE)/include -I$(SYSBASE)/include -I$(LOCALBASE)/include/$(JLIB) -I$(SYSBASE)/include/$(JLIB)
 LIBS=-L$(LOCALBASE)/lib -I$(SYSBASE)/lib -luuid -static -ljson-c -levent -lrabbitmq
 
 DEFS += -DKAMAILIO_MOD_INTERFACE
