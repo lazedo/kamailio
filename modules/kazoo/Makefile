@@ -22,13 +22,13 @@ ifeq ($(BUILDER),)
 		-I$(SYSBASE)/include/$(JLIB)
 	LIBS=-L$(LOCALBASE)/lib -I$(SYSBASE)/lib -luuid -static -l$(JLIB) -levent -lrabbitmq
 else
-	DEFS += $(shell $(BUILDER) --cflags $(JLIB))
+	DEFS += $(shell $(BUILDER) --static --cflags $(JLIB))
 	LIBS += $(shell $(BUILDER) --static --libs $(JLIB))
-	DEFS += $(shell $(BUILDER) --cflags uuid)
-	LIBS += $(shell $(BUILDER) --libs uuid)
-	DEFS += $(shell $(BUILDER) --cflags librabbitmq)
+	DEFS += $(shell $(BUILDER) --static --cflags uuid)
+	LIBS += $(shell $(BUILDER) --static --libs uuid)
+	DEFS += $(shell $(BUILDER) --static --cflags librabbitmq)
 	LIBS += $(shell $(BUILDER) --static --libs librabbitmq)
-	DEFS += $(shell $(BUILDER) --cflags libevent)
+	DEFS += $(shell $(BUILDER) --static --cflags libevent)
 	LIBS += $(shell $(BUILDER) --static --libs libevent)
 endif
 
