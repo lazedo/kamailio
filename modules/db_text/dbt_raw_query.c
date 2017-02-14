@@ -502,6 +502,7 @@ int dbt_raw_query(db1_con_t* _h, str* _s, db1_res_t** _r)
 		return res;
 	}
 
+	((dbt_con_p)_h->tail)->affected = 0;
 	dbt_trim(_s->s);
 	_s->len = strlen(_s->s);
 
