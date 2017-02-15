@@ -89,7 +89,7 @@ int dbt_raw_query_select(db1_con_t* _h, str* _s, db1_res_t** _r)
     dbt_trim(table_ptr);
 
     table.s = table_ptr;
-    table.len = len;
+    table.len = strlen(table_ptr);
     LM_DBG("using table '%.*s'\n", table.len, table.s);
 
 	if(dbt_use_table(_h, &table) != 0) {
@@ -210,7 +210,7 @@ int dbt_raw_query_update(db1_con_t* _h, str* _s, db1_res_t** _r)
 	table_ptr[len] = '\0';
 	dbt_trim(table_ptr);
 	table.s = table_ptr;
-	table.len = len;
+	table.len = strlen(table_ptr);
 
 	where_ptr = strcasestr(_s->s, " where ");
 	fields_end_ptr = where_ptr;
@@ -309,7 +309,7 @@ int dbt_raw_query_delete(db1_con_t* _h, str* _s, db1_res_t** _r)
     dbt_trim(table_ptr);
 
     table.s = table_ptr;
-    table.len = len;
+    table.len = strlen(table_ptr);
     LM_DBG("using table '%.*s'\n", table.len, table.s);
 
 	if(dbt_use_table(_h, &table) != 0) {
@@ -393,7 +393,7 @@ int dbt_raw_query_replace(db1_con_t* _h, str* _s, db1_res_t** _r)
 	table_ptr[len] = '\0';
 	dbt_trim(table_ptr);
 	table.s = table_ptr;
-	table.len = len;
+	table.len = strlen(table_ptr);
 
 	where_ptr = strcasestr(_s->s, " where ");
 	fields_end_ptr = where_ptr;
