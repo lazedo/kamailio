@@ -59,26 +59,23 @@ extern int dbk_consumer_workers;
 typedef struct kz_amqp_connection_t {
 	kz_amqp_connection_info info;
 	char* url;
-//    struct kz_amqp_connection_t* next;
 } kz_amqp_connection, *kz_amqp_connection_ptr;
 
-/*
-typedef struct {
-	kz_amqp_connection_ptr current;
-	kz_amqp_connection_ptr head;
-	kz_amqp_connection_ptr tail;
-} kz_amqp_connection_pool, *kz_amqp_connection_pool_ptr;
-*/
+typedef struct kz_amqp_timer_t {
+	struct event *ev;
+	struct itimerspec *timer;
+	int    fd;
+} kz_amqp_timer, *kz_amqp_timer_ptr;
+
 typedef struct kz_amqp_conn_t {
 	struct kz_amqp_server_t* server;
 	amqp_connection_state_t conn;
 	kz_amqp_connection_state state;
-	struct event *ev;
-	struct itimerspec *timer;
+	kz_amqp_timer_ptr reconnect;
+	kz_amqp_timer_ptr heartbeat;
 	amqp_socket_t *socket;
 	amqp_channel_t channel_count;
 	amqp_channel_t channel_counter;
-//    struct kz_amqp_conn_t* next;
 } kz_amqp_conn, *kz_amqp_conn_ptr;
 
 typedef struct {
@@ -111,10 +108,6 @@ typedef struct {
 	uint64_t delivery_tag;
 	amqp_channel_t channel;
 	struct timeval timeout;
-
-	/* timer */
-//	struct event *timer_ev;
-//	int timerfd;
 
 	/* async */
 	char *cb_route;
@@ -260,6 +253,10 @@ kz_amqp_zone_ptr kz_amqp_add_zone(char* zone);
 void kz_amqp_fire_connection_event(char *event, char* host);
 
 void kz_amqp_free_pipe_cmd(kz_amqp_cmd_ptr cmd);
+
+void kz_amqp_timer_destroy(kz_amqp_timer_ptr* pTimer);
+int kz_amqp_timer_create(kz_amqp_timer_ptr* pTimer, int seconds, void (*callback)(int, short, void *), void *data);
+void kz_amqp_heartbeat_proc(int fd, short event, void *arg);
 
 static inline int kz_amqp_error(char const *context, amqp_rpc_reply_t x)
 {
