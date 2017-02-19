@@ -213,6 +213,11 @@ int dbt_raw_query_update(db1_con_t* _h, str* _s, db1_res_t** _r)
 	table.len = strlen(table_ptr);
 
 	where_ptr = strcasestr(_s->s, " where ");
+	if(where_ptr == NULL) {
+		LM_ERR("specify where clause to determine keys\n");
+		goto error;
+	}
+	
 	fields_end_ptr = where_ptr;
 	len = fields_end_ptr - ( fields_start_ptr + 4) + 1;
 	fields_ptr = pkg_malloc(len);
@@ -226,11 +231,6 @@ int dbt_raw_query_update(db1_con_t* _h, str* _s, db1_res_t** _r)
 		goto error;
 	}
 
-
-	if(where_ptr == NULL) {
-		LM_ERR("specify where clause to determine keys\n");
-		goto error;
-	}
 	nkeys = dbt_build_where(where_ptr + 7, &_k, &_op1, &_kv);
 	if(nkeys < 1) {
 		LM_ERR("needsa at least one key\n");
@@ -396,6 +396,11 @@ int dbt_raw_query_replace(db1_con_t* _h, str* _s, db1_res_t** _r)
 	table.len = strlen(table_ptr);
 
 	where_ptr = strcasestr(_s->s, " where ");
+	if(where_ptr == NULL) {
+		LM_ERR("specify where clause to determine keys\n");
+		goto error;
+	}
+	
 	fields_end_ptr = where_ptr;
 	len = fields_end_ptr - ( fields_start_ptr + 4) + 1;
 	fields_ptr = pkg_malloc(len);
@@ -409,11 +414,6 @@ int dbt_raw_query_replace(db1_con_t* _h, str* _s, db1_res_t** _r)
 		goto error;
 	}
 
-
-	if(where_ptr == NULL) {
-		LM_ERR("specify where clause to determine keys\n");
-		goto error;
-	}
 	nkeys = dbt_build_where(where_ptr + 7, &_k, &_op1, &_kv);
 	if(nkeys < 1) {
 		LM_ERR("needsa at least one key\n");
