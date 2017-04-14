@@ -44,6 +44,8 @@
 #define DBK_DEFAULT_NO_CONSUMERS 1
 #define DBK_DEFAULT_NO_WORKERS 8
 
+#define AMQP_WORKERS_RANKING PROC_SIPRPC
+
 static int mod_init(void);
 static int  mod_child_init(int rank);
 static int fire_init_event(int rank);
@@ -92,6 +94,7 @@ int dbk_consumer_loop_count = 10;
 int dbk_consumer_ack_loop_count = 20;
 int dbk_include_entity = 1;
 int dbk_pua_mode = 1;
+db_locking_t kz_pua_lock_type = DB_LOCKING_WRITE;
 int dbk_use_hearbeats = 0;
 int dbk_single_consumer_on_reconnect = 1;
 int dbk_consume_messages_on_reconnect = 1;
@@ -144,6 +147,9 @@ static cmd_export_t cmds[] = {
     {"kazoo_query", (cmd_function) kz_amqp_query, 4, fixup_kz_amqp, fixup_kz_amqp_free, ANY_ROUTE},
     {"kazoo_query", (cmd_function) kz_amqp_query_ex, 3, fixup_kz_amqp, fixup_kz_amqp_free, ANY_ROUTE},
     {"kazoo_pua_publish", (cmd_function) kz_pua_publish, 1, 0, 0, ANY_ROUTE},
+    {"kazoo_pua_publish_mwi", (cmd_function) kz_pua_publish_mwi, 1, 0, 0, ANY_ROUTE},
+    {"kazoo_pua_publish_presence", (cmd_function) kz_pua_publish_presence, 1, 0, 0, ANY_ROUTE},
+    {"kazoo_pua_publish_dialoginfo", (cmd_function) kz_pua_publish_dialoginfo, 1, 0, 0, ANY_ROUTE},
     /*
     {"kazoo_pua_flush", (cmd_function) w_mi_dbk_presentity_flush0, 0, 0, 0, ANY_ROUTE},
     {"kazoo_pua_flush", (cmd_function) w_mi_dbk_presentity_flush1, 1, 0, 0, ANY_ROUTE},
@@ -212,6 +218,7 @@ static param_export_t params[] = {
     {"amqps_key", STR_PARAM, &kz_amqps_key.s},
     {"amqps_verify_peer", INT_PARAM, &kz_amqps_verify_peer},
     {"amqps_verify_hostname", INT_PARAM, &kz_amqps_verify_hostname},
+	{"pua_lock_type", INT_PARAM, &kz_pua_lock_type},
     {0, 0, 0}
 };
 
@@ -369,27 +376,15 @@ static int mod_child_init(int rank)
 	kz_amqp_zone_ptr g;
 	kz_amqp_server_ptr s;
 
-	fire_init_event(rank);
+	if (rank==PROC_INIT)
+		fire_init_event(rank);
 
 	if (rank==PROC_INIT || rank==PROC_TCP_MAIN)
 		return 0;
 
-//	if (rank>PROC_MAIN)
-//		kz_cmd_pipe = kz_cmd_pipe_fds[1];
-
-
 	if (rank==PROC_MAIN) {
-		/*
-		pid=fork_process(PROC_NOCHLDINIT, "AMQP Timer", 0);
-		if (pid<0)
-			return -1;
-		if(pid==0){
-			return(kz_amqp_timeout_proc());
-		}
-		*/
-
 		for(i=0; i < dbk_consumer_workers; i++) {
-			pid=fork_process(i+1, "AMQP Consumer Worker", 1);
+			pid=fork_process(AMQP_WORKERS_RANKING, "AMQP Consumer Worker", 1);
 			if (pid<0)
 				return -1; /* error */
 			if(pid==0){
@@ -425,7 +420,7 @@ static int mod_child_init(int rank)
 		return 0;
 	}
 
-	if(dbk_pua_mode == 1) {
+	if(rank == AMQP_WORKERS_RANKING && dbk_pua_mode == 1) {
 		if (kz_pa_dbf.init==0)
 		{
 			LM_CRIT("child_init: database not bound\n");
