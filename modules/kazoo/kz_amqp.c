@@ -1935,11 +1935,7 @@ error:
     if(binding != NULL)
     	shm_free(binding);
 
-    if(json_obj != NULL)
-       	json_object_put(json_obj);
-
 	return -1;
-
 }
 
 
