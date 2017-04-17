@@ -12,14 +12,10 @@ branches:
   only:
     - 'master'
     - '/^4\.[0-9]+$/'
+    - '/^lazedo\.*$/'
 notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#kamailio-dev"
-    on_success: never
-    on_failure: always
   email:
     recipients:
-      - sr-dev@lists.sip-router.org
+      - luis@2600hz.com
     on_success: never
     on_failure: always
