@@ -173,7 +173,7 @@ mod_list_uuid=uuid
 mod_list_ev=evapi
 
 # - modules depending on kazoo/rabbitmq
-mod_list_kazoo=kazoo
+mod_list_kazoo=kazoo db_kazoo
 
 # - modules depending on mongodb
 mod_list_mongodb=db_mongodb ndb_mongodb
