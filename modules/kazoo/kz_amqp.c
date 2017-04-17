@@ -601,7 +601,7 @@ kz_amqp_server_ptr kz_amqp_destroy_server(kz_amqp_server_ptr server_ptr)
     kz_amqp_server_ptr next = server_ptr->next;
 	kz_amqp_destroy_connection(server_ptr->connection);
 	kz_amqp_destroy_channels(server_ptr);
-	shm_free(server_ptr->producer);
+	if (server_ptr->producer) { shm_free(server_ptr->producer); }
 	shm_free(server_ptr);
 	return next;
 }
@@ -1936,6 +1936,7 @@ error:
     	shm_free(binding);
 
 	return -1;
+
 }
 
 
@@ -2227,7 +2228,7 @@ int kz_pv_get_event_payload(struct sip_msg *msg, pv_param_t *param,	pv_value_t *
 
 int kz_amqp_consumer_fire_event(char *eventkey)
 {
-	struct sip_msg *fmsg;
+	sip_msg_t *fmsg;
 	struct run_act_ctx ctx;
 	int rtb, rt;
 
@@ -2239,9 +2240,7 @@ int kz_amqp_consumer_fire_event(char *eventkey)
 		return -2;
 	}
 	LM_DBG("executing event_route[%s] (%d)\n", eventkey, rt);
-	if(faked_msg_init()<0)
-		return -2;
-	fmsg = faked_msg_next();
+	fmsg = faked_msg_get_next();
 	rtb = get_route_type();
 	set_route_type(REQUEST_ROUTE);
 	init_run_actions_ctx(&ctx);
@@ -2755,8 +2754,9 @@ char* maybe_add_consumer_key(int server_id, amqp_bytes_t body)
 {
 	char* payload = kz_amqp_bytes_dup(body);
     json_obj_ptr json_obj = kz_json_parse(payload );
-    if (json_obj == NULL)
-    	return payload ;
+    if (json_obj == NULL) {
+        return payload ;
+    }
 
 	json_object* server_id_obj = kz_json_get_object(json_obj, BLF_JSON_SERVERID);
     if(server_id_obj == NULL) {
