@@ -88,16 +88,20 @@ int db_kazoo_lock_destroy(void)
 
 void db_kazoo_acquire_lock(const db1_con_t* _h)
 {
+	if(_db_kazoo_cachesem) {
 	lock_get(_db_kazoo_cachesem);
 	CON_LOCKED(_h) = 1;
+	}
 }
 
 void db_kazoo_release_lock(const db1_con_t* _h)
 {
+	if(_db_kazoo_cachesem) {
 	if(CON_LOCKED(_h) == 1) {
 		lock_release(_db_kazoo_cachesem);
 	}
 	CON_LOCKED(_h) = 0;
+	}
 }
 
 /*
@@ -227,7 +231,7 @@ static int db_kazoo_val2str(const db1_con_t* _c, const db_val_t* _v, char* _s, i
 /*
  * Release a result set from memory
  */
-int db_kazoo_free_result(const db1_con_t* _h, db1_res_t* _r)
+int db_kazoo_free_result(db1_con_t* _h, db1_res_t* _r)
 {
 	if (!_h || !_r) {
 		LM_ERR("invalid parameter value\n");
@@ -257,6 +261,7 @@ static int db_kazoo_submit_query(const db1_con_t* _h, const str* _s)
 	const db_val_t *val;
 	int rc, i;
 
+	conn->rc = 0;
 	LM_DBG("acquiring lock\n");
 	db_kazoo_acquire_lock(_h);
 	LM_DBG("submit_query: %.*s\n", _s->len, _s->s);
@@ -422,6 +427,9 @@ int db_kazoo_store_result(const db1_con_t* _h, db1_res_t** _r)
 	int i, rc, num_rows = 0, num_cols = 0, num_alloc = 0;
 	db_row_t *rows = NULL, *row;
 	db_val_t *val;
+
+	if(!_r)
+		return 0;
 
 	res = db_new_result();
 	if (res == NULL) {
@@ -735,7 +743,7 @@ int db_kazoo_fetch_result(const db1_con_t* _h, db1_res_t** _r, const int nrows)
 
 	/* exit if the fetch count is zero */
 	if (nrows == 0) {
-		db_kazoo_free_result(_h, *_r);
+		db_kazoo_free_result((db1_con_t*)_h, *_r);
 		*_r = 0;
 		return 0;
 	}
@@ -743,7 +751,11 @@ int db_kazoo_fetch_result(const db1_con_t* _h, db1_res_t** _r, const int nrows)
 	LM_DBG("acquiring lock\n");
 	db_kazoo_acquire_lock(_h);
 
-	rc = sqlite3_step(conn->stmt);
+	if(conn->rc == 0 || conn->rc == SQLITE_ROW) {
+		rc = sqlite3_step(conn->stmt);
+	} else {
+		rc = conn->rc;
+	}
 
 	if(*_r==0) {
 		/* Allocate a new result structure */
@@ -873,6 +885,7 @@ int db_kazoo_fetch_result(const db1_con_t* _h, db1_res_t** _r, const int nrows)
 	RES_ROW_N(*_r) = num_rows;     /* rows in this result set */
 	RES_NUM_ROWS(*_r) += num_rows; /* rows in total */
 	RES_LAST_ROW(*_r) = RES_NUM_ROWS(*_r);
+	conn->rc = rc;
 
 //	if(num_rows < nrows) {
 //        RES_NUM_ROWS(*_r)++;
@@ -887,7 +900,7 @@ no_mem:
 	LM_ERR("no private memory left\n");
 err:
 	if (*_r) {
-		db_kazoo_free_result(_h, *_r);
+		db_kazoo_free_result((db1_con_t*)_h, *_r);
 		*_r = 0;
 	}
 

@@ -48,6 +48,7 @@ struct db_kazoo_connection {
 	int transaction;         /*!< Multi-query transaction is currently open */
 	int lockedtables;        /*!< Table locks were aquired */
 	int locked;
+	int rc;
 };
 
 #define CON_DB_KAZOO(db_con)     ((struct db_kazoo_connection *) db_con->tail)
@@ -56,6 +57,7 @@ struct db_kazoo_connection {
 #define CON_TRANSACTION(db_con)  (((struct db_kazoo_connection*)((db_con)->tail))->transaction)
 #define CON_LOCKEDTABLES(db_con) (((struct db_kazoo_connection*)((db_con)->tail))->lockedtables)
 #define CON_LOCKED(db_con)       (((struct db_kazoo_connection*)((db_con)->tail))->locked)
+#define CON_RC(db_con)           (((struct db_kazoo_connection*)((db_con)->tail))->rc)
 
 
 /*
@@ -69,7 +71,7 @@ int db_kazoo_lock_destroy(void);
 db1_con_t* db_kazoo_init(const str* _sqlurl);
 void db_kazoo_close(db1_con_t* _h);
 
-int db_kazoo_free_result(const db1_con_t* _h, db1_res_t* _r);
+int db_kazoo_free_result(db1_con_t* _h, db1_res_t* _r);
 
 int db_kazoo_query(const db1_con_t* _h, const db_key_t* _k, const db_op_t* _op, const db_val_t* _v, const db_key_t* _c, int _n, int _nc, const db_key_t _o,
                    db1_res_t** _r);
