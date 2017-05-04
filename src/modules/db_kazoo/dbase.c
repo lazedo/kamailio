@@ -315,6 +315,7 @@ static int db_kazoo_submit_query(const db1_con_t* _h, const str* _s)
 		}
 	}
 
+	conn->bindpos = 0;
 	return 0;
 }
 
@@ -998,24 +999,20 @@ int db_kazoo_start_transaction(const db1_con_t* _h, db_locking_t _l)
 			LM_ERR("allocating pkg memory\n");
 			goto error;
 		}
-
 		memcpy(lock_str.s, lock_start_str.s, lock_start_str.len);
 		lock_str.len += lock_start_str.len;
 		memcpy(lock_str.s + lock_str.len, CON_TABLE(_h)->s, CON_TABLE(_h)->len);
 		lock_str.len += CON_TABLE(_h)->len;
 		memcpy(lock_str.s + lock_str.len, lock_end_str.s, lock_end_str.len);
 		lock_str.len += lock_end_str.len;
-
 		if (db_kazoo_raw_query(_h, &lock_str, NULL) < 0)
 		{
 			LM_ERR("executing raw_query : '%.*s'\n", lock_str.len, lock_str.s);
 			goto error;
 		}
-
 		if (lock_str.s) pkg_free(lock_str.s);
 		CON_LOCKEDTABLES(_h) = 1;
 		break;
-
 	default:
 		LM_WARN("unrecognised lock type\n");
 		goto error;
@@ -1040,23 +1037,19 @@ error:
 int db_kazoo_unlock_tables(db1_con_t* _h)
 {
 	str query_str = str_init("UNLOCK TABLES;");
-
 	if (!_h) {
 		LM_ERR("invalid parameter value\n");
 		return -1;
 	}
-
 	if (CON_LOCKEDTABLES(_h) == 0) {
 		LM_DBG("no active locked tables\n");
 		return 0;
 	}
-
 	if (db_kazoo_raw_query(_h, &query_str, NULL) < 0)
 	{
 		LM_ERR("executing raw_query\n");
 		return -1;
 	}
-
 	CON_LOCKEDTABLES(_h) = 0;
 	return 0;
 }
@@ -1158,47 +1151,37 @@ int db_kazoo_abort_transaction(const db1_con_t* _h)
  {
 	int off, ret;
 	static str  sql_str;
-
 	if ((!_h) || (!_k) || (!_v) || (!_n)) {
 		LM_ERR("invalid parameter value\n");
 		return -1;
 	}
-
 	ret = snprintf(kazoo_sql_buf, sql_buffer_size, "insert into %s%.*s%s (",
 			CON_TQUOTESZ(_h), CON_TABLE(_h)->len, CON_TABLE(_h)->s, CON_TQUOTESZ(_h));
 	if (ret < 0 || ret >= sql_buffer_size) goto error;
 	off = ret;
-
 	ret = db_print_columns(kazoo_sql_buf + off, sql_buffer_size - off, _k, _n, CON_TQUOTESZ(_h));
 	if (ret < 0) return -1;
 	off += ret;
-
 	ret = snprintf(kazoo_sql_buf + off, sql_buffer_size - off, ") values (");
 	if (ret < 0 || ret >= (sql_buffer_size - off)) goto error;
 	off += ret;
 	ret = db_print_values(_h, kazoo_sql_buf + off, sql_buffer_size - off, _v, _n, db_kazoo_val2str);
 	if (ret < 0) return -1;
 	off += ret;
-
 	*(kazoo_sql_buf + off++) = ')';
-
 	ret = snprintf(kazoo_sql_buf + off, sql_buffer_size - off, " on duplicate key update ");
 	if (ret < 0 || ret >= (sql_buffer_size - off)) goto error;
 	off += ret;
-
 	ret = db_print_set(_h, kazoo_sql_buf + off, sql_buffer_size - off, _k, _v, _n, db_kazoo_val2str);
 	if (ret < 0) return -1;
 	off += ret;
-
 	sql_str.s = kazoo_sql_buf;
 	sql_str.len = off;
-
 	if (db_kazoo_submit_query(_h, &sql_str) < 0) {
 		LM_ERR("error while submitting query\n");
 		return -2;
 	}
 	return 0;
-
 error:
 	LM_ERR("error while preparing insert_update operation\n");
 	return -1;
