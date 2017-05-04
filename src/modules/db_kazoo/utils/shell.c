@@ -6997,6 +6997,16 @@ static char *cmdline_option_value(int argc, char **argv, int i){
 #  endif
 #endif
 
+#ifdef SQLITE_SHELL_DBNAME_PROC
+
+    /* If the SQLITE_SHELL_DBNAME_PROC macro is defined, then it is the name
+    ** of a C-function that will provide the name of the database file.  Use
+    ** this compile-time option to embed this shell program in larger
+    ** applications. */
+    extern void SQLITE_SHELL_DBNAME_PROC(const char**);
+
+#endif
+
 #if SQLITE_SHELL_IS_UTF8
 int SQLITE_CDECL main(int argc, char **argv){
 #else
@@ -7049,18 +7059,6 @@ int SQLITE_CDECL wmain(int argc, wchar_t **wargv){
   */
 #ifdef SIGINT
   signal(SIGINT, interrupt_handler);
-#endif
-
-#ifdef SQLITE_SHELL_DBNAME_PROC
-  {
-    /* If the SQLITE_SHELL_DBNAME_PROC macro is defined, then it is the name
-    ** of a C-function that will provide the name of the database file.  Use
-    ** this compile-time option to embed this shell program in larger
-    ** applications. */
-    extern void SQLITE_SHELL_DBNAME_PROC(const char**);
-    SQLITE_SHELL_DBNAME_PROC(&data.zDbFilename);
-    warnInmemoryDb = 0;
-  }
 #endif
 
   /* Do an initial pass through the command-line argument to locate
@@ -7171,12 +7169,17 @@ int SQLITE_CDECL wmain(int argc, wchar_t **wargv){
     }
   }
   if( data.zDbFilename==0 ){
+#ifdef SQLITE_SHELL_DBNAME_PROC
+	    SQLITE_SHELL_DBNAME_PROC(&data.zDbFilename);
+	    warnInmemoryDb = 0;
+#else
 #ifndef SQLITE_OMIT_MEMORYDB
     data.zDbFilename = ":memory:";
     warnInmemoryDb = argc==1;
 #else
     utf8_printf(stderr,"%s: Error: no database filename specified\n", Argv0);
     return 1;
+#endif
 #endif
   }
   data.out = stdout;
