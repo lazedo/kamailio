@@ -682,13 +682,9 @@ int db_kazoo_raw_query(const db1_con_t* _h, const str* _s, db1_res_t** _r)
 
 	rc = db_do_raw_query(_h, _s, _r, db_kazoo_submit_query, db_kazoo_store_result);
 	if (rc == 0) {
-		if(rc == 0) {
-			db_kazoo_end_transaction(_h);
-		} else {
-			LM_ERR("raw query failed: %d - %s\n", rc, sqlite3_errmsg(CON_CONNECTION(_h)));
-			db_kazoo_abort_transaction(_h);
-		}
+		db_kazoo_end_transaction(_h);
 	} else {
+		db_kazoo_abort_transaction(_h);
 		LM_ERR("raw query failed: %s\n", sqlite3_errmsg(CON_CONNECTION(_h)));
 	}
 	db_kazoo_cleanup_query(_h);
