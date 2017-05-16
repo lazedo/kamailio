@@ -177,6 +177,7 @@ int build_contact(sip_msg_t *msg, ucontact_t* c, str *host)
 	sr_xavp_t *list=NULL;
 	sr_xavp_t *new_xavp=NULL;
 	str xname = {"ruid", 4};
+	str ename = {"expires", 7};
 	sr_xval_t xval;
 
 
